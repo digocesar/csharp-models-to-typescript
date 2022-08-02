@@ -149,7 +149,7 @@ const createConverter = config => {
         if (extraInfo.Summary) {
             let commentLines = extraInfo.Summary.split(/\r?\n/);
             commentLines = commentLines.map((e) => {
-                return `${identation} * ${e}\n`;
+                return `${identation} * ${replaceCommentTags(e)}\n`;
             })
             comment += commentLines.join('');
         }
@@ -161,7 +161,7 @@ const createConverter = config => {
 
             let obsoleteMessage = '';
             if (extraInfo.ObsoleteMessage) {
-                obsoleteMessage = ' ' + extraInfo.ObsoleteMessage;
+                obsoleteMessage = ' ' + replaceCommentTags(extraInfo.ObsoleteMessage);
             }
             comment += `${identation} * @deprecated${obsoleteMessage}\n`;
         }
@@ -169,6 +169,10 @@ const createConverter = config => {
         comment += `${identation} */`;
 
         return comment;
+    }
+
+    const replaceCommentTags = comment => {
+        return comment.replace(/<see cref="(\w+)"\/>/gi, '{@link $1}');
     }
 
     const convertProperty = property => {
