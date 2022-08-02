@@ -68,9 +68,11 @@ const createConverter = config => {
         const baseClasses = model.BaseClasses && model.BaseClasses.length ? ` extends ${model.BaseClasses.join(', ')}` : '';
 
         rows.push(`// ${filename}`);
-        if (model.Obsolete) {
-            rows.push(formatObsoleteMessage(model.ObsoleteMessage, ''));
+        let classCommentRows = formatComment(model.ExtraInfo, '')
+        if (classCommentRows) {
+            rows.push(classCommentRows);
         }
+        
         rows.push(`export interface ${model.ModelName}${baseClasses} {`);
 
         if (model.IndexSignature) {
@@ -78,9 +80,11 @@ const createConverter = config => {
         }
 
         members.forEach(member => {
-            if (member.Obsolete) {
-                rows.push(formatObsoleteMessage(member.ObsoleteMessage, '    '));
+            let memberCommentRows = formatComment(member.ExtraInfo, '    ')
+            if (memberCommentRows) {
+                rows.push(memberCommentRows);
             }
+
             rows.push(`    ${convertProperty(member)};`);
         });
 
@@ -95,8 +99,9 @@ const createConverter = config => {
 
         const entries = Object.entries(enum_.Values);
 
-        if (enum_.Obsolete) {
-            rows.push(formatObsoleteMessage(enum_.ObsoleteMessage, ''));
+        let classCommentRows = formatComment(enum_.ExtraInfo, '')
+        if (classCommentRows) {
+            rows.push(classCommentRows);
         }
 
         const getEnumStringValue = (value) => config.camelCaseEnums
@@ -116,8 +121,9 @@ const createConverter = config => {
             rows.push(`export enum ${enum_.Identifier} {`);
 
             entries.forEach(([i, entrie]) => {
-                if (entrie.Obsolete) {
-                    rows.push(formatObsoleteMessage(entrie.ObsoleteMessage, '    '));
+                let classCommentRows = formatComment(entrie.ExtraInfo, '    ')
+                if (classCommentRows) {
+                    rows.push(classCommentRows);
                 }
                 if (config.numericEnums) {
                     rows.push(`    ${entrie.Identifier} = ${entrie.Value != null ? entrie.Value : i},`);
@@ -132,19 +138,37 @@ const createConverter = config => {
         return rows;
     };
 
-    const formatObsoleteMessage = (obsoleteMessage, identation) => {
-        if (obsoleteMessage) {
-            obsoleteMessage = ' ' + obsoleteMessage;
-        } else {
-            obsoleteMessage = '';
+    const formatComment = (extraInfo, identation) => {
+        if (!extraInfo || (!extraInfo.Obsolete && !extraInfo.Summary)) {
+            return undefined;
         }
 
-        let deprecationMessage = '';
-        deprecationMessage += `${identation}/**\n`;
-        deprecationMessage += `${identation} * @deprecated${obsoleteMessage}\n`;
-        deprecationMessage += `${identation} */`;
+        let comment = '';
+        comment += `${identation}/**\n`;
 
-        return deprecationMessage;
+        if (extraInfo.Summary) {
+            let commentLines = extraInfo.Summary.split(/\r?\n/);
+            commentLines = commentLines.map((e) => {
+                return `${identation} * ${e}\n`;
+            })
+            comment += commentLines.join('');
+        }
+
+        if (extraInfo.Obsolete) {
+            if (extraInfo.Summary) {
+                comment += `${identation} *\n`;
+            }
+
+            let obsoleteMessage = '';
+            if (extraInfo.ObsoleteMessage) {
+                obsoleteMessage = ' ' + extraInfo.ObsoleteMessage;
+            }
+            comment += `${identation} * @deprecated${obsoleteMessage}\n`;
+        }
+
+        comment += `${identation} */`;
+
+        return comment;
     }
 
     const convertProperty = property => {
