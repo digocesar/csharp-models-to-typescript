@@ -2,6 +2,11 @@
 
 This is a tool that consumes your C# domain models and types and creates TypeScript declaration files from them. There's other tools that does this but what makes this one different is that it internally uses [Roslyn (the .NET compiler platform)](https://github.com/dotnet/roslyn) to parse the source files, which removes the need to create and maintain our own parser.
 
+This project is a fork from [svenheden/csharp-models-to-typescript](https://github.com/svenheden/csharp-models-to-typescript) and include some new features:
+- Config option `omitSemicolon` to don't use semicolon at line ending.
+- Config option `omitFilePathComment` to don't include comment with files path.
+- Config option `includeComments` to include Comments, Remarks and Deprecated comments to TypeScript types.
+
 
 [![NPM version][npm-image]][npm-url]
 
