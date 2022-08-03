@@ -139,7 +139,7 @@ const createConverter = config => {
     };
 
     const formatComment = (extraInfo, identation) => {
-        if (!extraInfo || (!extraInfo.Obsolete && !extraInfo.Summary)) {
+        if (!config.includeComments || !extraInfo || (!extraInfo.Obsolete && !extraInfo.Summary)) {
             return undefined;
         }
 
