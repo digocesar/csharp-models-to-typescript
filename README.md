@@ -19,7 +19,7 @@ This project is a fork from [svenheden/csharp-models-to-typescript](https://gith
 ## Install
 
 ```
-$ npm install --save csharp-models-to-typescript
+$ npm install --save digocesar/csharp-models-to-typescript
 ```
 
 ## How to use
