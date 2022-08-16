@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "csharp-models-to-json": {
+      "commandName": "Project",
+      "commandLineArgs": "csharp-models-to-typescript.json"
+    }
+  }
+}
