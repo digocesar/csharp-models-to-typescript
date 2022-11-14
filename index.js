@@ -85,13 +85,16 @@ dotnetProcess.stdout.on('end', () => {
         timer = process.hrtime(timer);
         console.log('Model done in %d.%d seconds.', timer[0], timer[1]);
 
-        fs.writeFile(contractsOutput, contracts, err => {
-            if (err) {
-                return console.error(err);
-            }
-
-            timer = process.hrtime(timer);
-            console.log('Contracts done in %d.%d seconds.', timer[0], timer[1]);
-        });
+        if (contracts.length > 0)
+        {
+            fs.writeFile(contractsOutput, contracts, err => {
+                if (err) {
+                    return console.error(err);
+                }
+    
+                timer = process.hrtime(timer);
+                console.log('Contracts done in %d.%d seconds.', timer[0], timer[1]);
+            });
+        }
     });
 });

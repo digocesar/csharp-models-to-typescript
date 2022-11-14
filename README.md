@@ -32,11 +32,15 @@ $ npm install --save digocesar/csharp-models-to-typescript
         "./models/**/*.cs",
         "./enums/**/*.cs"
     ],
+    "wcfContracts": [
+        "./contracts/**/*.cs"
+    ],
     "exclude": [
         "./models/foo/bar.cs"
     ],
     "namespace": "Api",
     "output": "./api.d.ts",
+    "contractsOutput": "./contracts.d.ts"
     "includeComments": true,
     "camelCase": false,
     "camelCaseEnums": false,
