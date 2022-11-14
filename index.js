@@ -29,6 +29,7 @@ try {
 }
 
 const output = config.output || 'types.d.ts';
+const contractsOutput = config.contractsOutput || 'contracts.d.ts';
 
 const converter = createConverter({
     customTypeTranslations: config.customTypeTranslations || {},
@@ -71,7 +72,10 @@ dotnetProcess.stdout.on('end', () => {
         ].join('\n\n'));
     }
 
-    const types = converter(json);
+    console.log(converter);
+
+    const types = converter[0](json);
+    const contracts = converter[1](json);
 
     fs.writeFile(output, types, err => {
         if (err) {
@@ -79,6 +83,18 @@ dotnetProcess.stdout.on('end', () => {
         }
 
         timer = process.hrtime(timer);
-        console.log('Done in %d.%d seconds.', timer[0], timer[1]);
+        console.log('Model done in %d.%d seconds.', timer[0], timer[1]);
+
+        if (contracts.length > 0)
+        {
+            fs.writeFile(contractsOutput, contracts, err => {
+                if (err) {
+                    return console.error(err);
+                }
+    
+                timer = process.hrtime(timer);
+                console.log('Contracts done in %d.%d seconds.', timer[0], timer[1]);
+            });
+        }
     });
 });

@@ -24,6 +24,7 @@ const defaultTypeTranslations = {
     Guid: 'string',
     dynamic: 'any',
     object: 'any',
+    void: 'void'
 };
 
 const createConverter = config => {
@@ -35,7 +36,33 @@ const createConverter = config => {
 
             const rows = flatten([
                 ...file.Models.map(model => convertModel(model, filename)),
-                ...file.Enums.map(enum_ => convertEnum(enum_, filename)),
+                ...file.Enums.map(enum_ => convertEnum(enum_, filename))
+            ]);
+
+            return rows
+                .map(row => config.namespace ? `    ${row}` : row)
+                .join('\n');
+        });
+
+        const filteredContent = content.filter(x => x.length > 0);
+
+        if (config.namespace) {
+            return [
+                `declare module ${config.namespace} {`,
+                ...filteredContent,
+                '}',
+            ].join('\n');
+        } else {
+            return filteredContent.join('\n');
+        }
+    };
+
+    const convertContracts = json => {
+        const content = json.map(file => {
+            const filename = path.relative(process.cwd(), file.FileName);
+
+            const rows = flatten([
+                ...file.Contracts.map(contract => convertContract(contract, filename))
             ]);
 
             return rows
@@ -74,7 +101,7 @@ const createConverter = config => {
         if (classCommentRows) {
             rows.push(classCommentRows);
         }
-        
+
         rows.push(`export interface ${model.ModelName}${baseClasses} {`);
 
         const propertySemicolon = config.omitSemicolon ? '' : ';';
@@ -94,6 +121,51 @@ const createConverter = config => {
 
         rows.push(`}\n`);
 
+        return rows;
+    };
+
+    const convertContract = (contract, filename) => {
+        const rows = [];
+
+        const operations = [...(contract.Operations || [])];
+
+        if (!config.omitFilePathComment) {
+            rows.push(`// ${filename}`);
+        }
+
+        let classCommentRows = formatComment(contract.ExtraInfo, '')
+        if (classCommentRows) {
+            rows.push(classCommentRows);
+        }
+
+        rows.push(`export interface ${contract.ContractName} {`);
+
+        operations.forEach(operation => {
+            let operationCommentRows = formatComment(operation.ExtraInfo, '    ')
+            if (operationCommentRows) {
+                rows.push(operationCommentRows);
+            }
+
+            var methodSignature = (`    ${operation.Identifier}(`);
+
+            for (let i = 0; i < operation.Parameters.length; i++) {
+
+                let addComma = ', ';
+
+                let parameter = operation.Parameters[i]
+
+                if (i == operation.Parameters.length - 1) {
+                    addComma = '';
+                }
+
+                methodSignature += (`${parameter.Identifier}: ${parseType(parameter.Type)}${addComma}`);
+            }
+            methodSignature += (`): ${parseType(operation.ReturnType)}`)
+
+            rows.push(methodSignature);
+            rows.push("");
+        });
+        rows.push(`}`);
         return rows;
     };
 
@@ -204,14 +276,14 @@ const createConverter = config => {
         return `${identifier}: ${type}`;
     };
 
-     const convertIndexType = indexType => {
-       const dictionary = indexType.match(dictionaryRegex);
-       const simpleDictionary = indexType.match(simpleDictionaryRegex);
+    const convertIndexType = indexType => {
+        const dictionary = indexType.match(dictionaryRegex);
+        const simpleDictionary = indexType.match(simpleDictionaryRegex);
 
-       propType = simpleDictionary ? dictionary[2] : parseType(dictionary[2]);
+        propType = simpleDictionary ? dictionary[2] : parseType(dictionary[2]);
 
-       return `[key: ${convertType(dictionary[1])}]: ${convertType(propType)}`;
-     };
+        return `[key: ${convertType(dictionary[1])}]: ${convertType(propType)}`;
+    };
 
     const convertRecord = indexType => {
         const dictionary = indexType.match(dictionaryRegex);
@@ -250,7 +322,7 @@ const createConverter = config => {
     const convertIdentifier = identifier => config.camelCase ? camelcase(identifier, config.camelCaseOptions) : identifier;
     const convertType = type => type in typeTranslations ? typeTranslations[type] : type;
 
-    return convert;
+    return [convert, convertContracts];
 };
 
 module.exports = createConverter;

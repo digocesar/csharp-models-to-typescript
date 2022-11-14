@@ -11,8 +11,9 @@ namespace CSharpModelsToJson
     class File
     {
         public string FileName { get; set; }
-        public IEnumerable<Model> Models { get; set; }
-        public IEnumerable<Enum> Enums { get; set; }
+        public IEnumerable<Model> Models { get; set; } = new List<Model>();
+        public IEnumerable<Enum> Enums { get; set; } = new List<Enum>();
+        public IEnumerable<Contract> Contracts { get; set; } = new List<Contract>();
     }
 
     class Program
@@ -25,14 +26,22 @@ namespace CSharpModelsToJson
 
             List<string> includes = new List<string>();
             List<string> excludes = new List<string>();
+            List<string> WCFContracts = new List<string>();
 
             config.Bind("include", includes);
             config.Bind("exclude", excludes);
+            config.Bind("wcfContracts", WCFContracts);
 
             List<File> files = new List<File>();
 
-            foreach (string fileName in getFileNames(includes, excludes)) {
+            foreach (string fileName in getFileNames(includes, excludes))
+            {
                 files.Add(parseFile(fileName));
+            }
+
+            foreach (string fileName in getFileNames(WCFContracts, excludes))
+            {
+                files.Add(parseContractFile(fileName));
             }
 
             var serializerSettings = new JsonSerializerSettings
@@ -44,6 +53,7 @@ namespace CSharpModelsToJson
 
             System.Console.OutputEncoding = System.Text.Encoding.UTF8;
             System.Console.WriteLine(json);
+            
         }
 
         static List<string> getFileNames(List<string> includes, List<string> excludes) {
@@ -89,6 +99,23 @@ namespace CSharpModelsToJson
                 FileName = System.IO.Path.GetFullPath(path),
                 Models = modelCollector.Models,
                 Enums = enumCollector.Enums
+            };
+        }
+
+        static File parseContractFile(string path)
+        {
+            string source = System.IO.File.ReadAllText(path);
+            SyntaxTree tree = CSharpSyntaxTree.ParseText(source);
+            var root = (CompilationUnitSyntax)tree.GetRoot();
+
+            var collector = new ContractCollector();
+
+            collector.Visit(root);
+
+            return new File()
+            {
+                FileName = System.IO.Path.GetFullPath(path),
+                Contracts = collector.Contracts
             };
         }
     }
