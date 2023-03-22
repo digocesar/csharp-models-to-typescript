@@ -196,7 +196,7 @@ const createConverter = config => {
     }
 
     const convertProperty = property => {
-        const optional = property.Type.endsWith('?');
+        const optional = property.Type.endsWith('?') || (property.ExtraInfo != null && !property.ExtraInfo.EmitDefaultValue);
         const identifier = convertIdentifier(optional ? `${property.Identifier.split(' ')[0]}?` : property.Identifier.split(' ')[0]);
 
         const type = parseType(property.Type);

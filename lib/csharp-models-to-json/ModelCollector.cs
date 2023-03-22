@@ -120,6 +120,7 @@ namespace CSharpModelsToJson
                 ObsoleteMessage = Util.GetObsoleteMessage(property.AttributeLists),
                 Summary = Util.GetSummaryMessage(property),
                 Remarks = Util.GetRemarksMessage(property),
+                EmitDefaultValue = Util.GetEmitDefaultValue(property.AttributeLists),
             }
         };
     }
