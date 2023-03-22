@@ -4,7 +4,6 @@ This is a tool that consumes your C# domain models and types and creates TypeScr
 
 This project is a fork from [svenheden/csharp-models-to-typescript](https://github.com/svenheden/csharp-models-to-typescript) and include some new features:
 - Config option `omitSemicolon` to don't use semicolon at line ending.
-- Config option `omitFilePathComment` to don't include comment with files path.
 - Config option `includeComments` to include Comments, Remarks and Deprecated comments to TypeScript types.
 
 
